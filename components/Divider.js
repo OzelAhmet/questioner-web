@@ -2,6 +2,7 @@ import React from 'react';
 import {StyleSheet, View } from 'react-native';
 
 const Divider = (props) => {
+
     return (
         <View style={styles.divider}>
         </View>
