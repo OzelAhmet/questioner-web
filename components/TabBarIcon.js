@@ -1,15 +1,20 @@
 import React from 'react';
+import {Platform} from "react-native";
+
 import { Ionicons } from '@expo/vector-icons';
+import {withTheme} from "../constants/ThemeProvider";
 
-import Colors from '../constants/Colors';
+const TabBarIcon = (props) => {
+    const theme = props.theme;
 
-export default function TabBarIcon(props) {
-  return (
-    <Ionicons
-      name={props.name}
-      size={26}
-      style={{ marginBottom: -3 }}
-      color={props.focused ? Colors.theme.tabIconSelected : Colors.theme.tabIconDefault}
-    />
-  );
-}
+    return (
+        <Ionicons
+            name={props.name}
+            size={26}
+            color={props.focused ? theme.tabIconSelected : theme.tabIconDefault}
+            style={{marginTop: -3}}
+        />
+    );
+};
+
+export default withTheme(TabBarIcon);

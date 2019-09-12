@@ -1,11 +1,12 @@
 import React from 'react';
 import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
-import Colors from "../constants/Colors";
+import {withTheme} from "../constants/ThemeProvider";
 
 const CollectionItem = (props) => {
+    const styles = createStyle(props.theme);
 
     return (
-        <TouchableOpacity activeOpacity={0.8} onPress={props.onPress}>
+        <TouchableOpacity activeOpacity={0.8} onPress={props.onPress} onLongPress={props.onLongPress}>
             <View style={styles.container}>
                 <Text style={styles.text}>{props.children}</Text>
             </View>
@@ -13,7 +14,7 @@ const CollectionItem = (props) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createStyle = (theme) => StyleSheet.create({
     container: {
         width: "100%",
         height: 50,
@@ -21,7 +22,7 @@ const styles = StyleSheet.create({
         padding: 5,
         paddingLeft: 30,
         justifyContent: "center",
-        backgroundColor: Colors.theme.tabIconSelected,
+        backgroundColor: theme.tabIconSelected,
         borderBottomRightRadius: 20,
         borderTopRightRadius: 20
     },
@@ -32,4 +33,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default CollectionItem;
+export default withTheme(CollectionItem);

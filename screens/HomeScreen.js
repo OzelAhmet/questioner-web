@@ -1,31 +1,79 @@
-import React from 'react';
-import {
-    Image,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+import React, {useEffect, useState, useContext} from 'react';
+import {Image, Platform, ScrollView, StyleSheet, Text, View, Alert} from 'react-native';
 import CollectionItem from "../components/CollectionItem";
 import Divider from "../components/Divider";
-import Colors from "../constants/Colors";
+import * as Server from "../api/server";
+import Icon from "../components/Icon";
+import ContextMenu from "../components/ContextMenu";
+import {ThemeContext} from "../constants/ThemeProvider";
 
 export default function HomeScreen(props) {
+    const {theme} = useContext(ThemeContext);
+    const styles = createStyle(theme);
 
-    const openCollectionHandler = (collectionId) => {
-        props.navigation.navigate( "Collection", {
-                collectionId: collectionId
+    const [collectionList, setCollectionList] = useState([]);
+    const [listChanged, setListChanged] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [menuCollection, setMenuCollection] = useState(null);
+
+    // componentDidMount
+    useEffect(() => {
+        Server.getAllCollections().then(response => {
+            setCollectionList(response.body);
+            setListChanged(false);
+        });
+    }, [listChanged]);
+
+    const openCollectionHandler = (collectionId, collectionName) => {
+        props.navigation.navigate("Collection", {
+                collectionId: collectionId,
+                collectionName: collectionName
             }
         );
     };
 
-    const tempCollections = [
-        {id: 1, name: "c1"}, {id: 2, name: "c2"}, {id: 3, name: "c3"}, {id: 4, name: "c4"}, {id: 5, name: "c5"},
-    ];
+    const addCollectionHandler = () => {
+        props.navigation.navigate("AddCollection", {
+            onGoBack: () => setListChanged(true),
+        });
+    };
 
-    let collections = tempCollections.map(collectionItem => (
-        <CollectionItem key={collectionItem.id} onPress={openCollectionHandler.bind(this, collectionItem.id)}>
+    const deleteCollectionHandler = (collection) => {
+        const deleteAction = () => {
+            Server.deleteCollection(collection.id).then(response => {
+                if (response.responseCode === 200){
+                    Alert.alert("Deleted", response.message);
+                    setListChanged(true);
+                } else {
+                    Alert.alert("Error", response.message+"\n"+response.errorList);
+                }
+            });
+        };
+
+        Alert.alert(
+            'Confirm',
+            `Are you sure that you want to delete ${collection.name} collection?
+            \n You will lose all the questions in it.`,
+            [ // buttons
+                {text: 'Cancel', style: 'cancel'},
+                {text: 'Yes', onPress: deleteAction},
+            ],
+            {cancelable: false},
+        );
+    };
+
+    const collectionOptionsHandler = (collection) => {
+        setMenuCollection(collection);
+        setMenuOpen(true);
+    };
+
+
+    let collections = collectionList.map(collectionItem => (
+        <CollectionItem
+            key={collectionItem.id}
+            onPress={openCollectionHandler.bind(this, collectionItem.id, collectionItem.name)}
+            onLongPress={collectionOptionsHandler.bind(this, collectionItem)}
+        >
             {collectionItem.name}
         </CollectionItem>
     ));
@@ -41,11 +89,26 @@ export default function HomeScreen(props) {
             </View>
 
             <View style={styles.collectionsContainer}>
-                <Text style={styles.collectionsText}>Collections</Text>
+                <View style={{flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
+                    <Text style={styles.collectionsText}>Collections</Text>
+                    <Icon // Add collection button
+                        onPress={addCollectionHandler}
+                        name={"add-circle"}
+                        style={{paddingHorizontal: 15}}
+                    />
+                </View>
                 <Divider/>
-                <ScrollView style={styles.collectionsScrollView} contentContainerStyle={styles.contentContainer} >
+                <ScrollView style={styles.collectionsScrollView} contentContainerStyle={styles.contentContainer}>
                     {collections}
                 </ScrollView>
+                {/* make menu visible when necessary and use question state to set its content */}
+                <ContextMenu
+                    options={[
+                        {text:"Delete", onPress: () => deleteCollectionHandler(menuCollection)}
+                    ]}
+                    visible={menuOpen}
+                    closeMenu={() => setMenuOpen(!menuOpen)}
+                />
             </View>
 
         </View>
@@ -53,13 +116,13 @@ export default function HomeScreen(props) {
 }
 
 HomeScreen.navigationOptions = {
-    header: <Text>Header</Text>
+    header: null
 };
 
-const styles = StyleSheet.create({
+const createStyle = (theme) => StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: Colors.theme.background,
+        backgroundColor: theme.background,
     },
     welcomeContainer: {
         alignItems: 'center',
@@ -73,7 +136,11 @@ const styles = StyleSheet.create({
     },
     questionerText: {
         fontSize: 50,
-        color: "#373c42"
+        fontWeight: "bold",
+        color: "#373c42",
+        textShadowColor: "rgba(55,60,66,0.4)",
+        textShadowOffset: {width: -2, height: 0},
+        textShadowRadius: 6,
     },
     collectionsContainer: {
         height: "55%",
@@ -84,7 +151,7 @@ const styles = StyleSheet.create({
         ...Platform.select({
             ios: {
                 shadowColor: 'black',
-                shadowOffset: { width: 0, height: -3 },
+                shadowOffset: {width: 0, height: -3},
                 shadowOpacity: 0.1,
                 shadowRadius: 3,
             },
@@ -92,12 +159,13 @@ const styles = StyleSheet.create({
                 elevation: 20,
             },
         }),
-        backgroundColor: Colors.theme.secondBackGround,
+        backgroundColor: theme.secondBackGround,
         // paddingVertical: 20,
     },
     collectionsText: {
-        color: Colors.theme.textColor,
-        marginLeft: 10,
+        color: theme.textColor,
+        fontWeight: "bold",
+        marginLeft: 20,
         fontSize: 40,
     },
     collectionsScrollView: {

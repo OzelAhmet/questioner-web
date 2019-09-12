@@ -1,9 +1,12 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { ExpoLinksView } from '@expo/samples';
-import Colors from "../constants/Colors";
+import {ThemeContext} from "../constants/ThemeProvider";
 
 export default function LinksScreen() {
+  const {theme} = useContext(ThemeContext);
+  const styles = createStyle(theme);
+
   return (
     <ScrollView style={styles.container}>
       <ExpoLinksView />
@@ -15,10 +18,10 @@ LinksScreen.navigationOptions = {
   title: 'Links',
 };
 
-const styles = StyleSheet.create({
+const createStyle = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 15,
-    backgroundColor: Colors.theme.background,
+    backgroundColor: theme.background,
   },
 });

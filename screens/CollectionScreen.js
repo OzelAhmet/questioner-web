@@ -1,57 +1,94 @@
-import React from 'react';
-import {
-    StyleSheet,
-    FlatList,
-    View,
-} from 'react-native';
+import React, {useEffect, useState, useContext} from 'react';
+import {FlatList, StyleSheet, View, Alert} from 'react-native';
 import QuestionItem from "../components/QuestionItem";
-import Colors from "../constants/Colors";
+import * as Server from "../api/server";
+import Icon from "../components/Icon";
+import ContextMenu from "../components/ContextMenu";
+import {ThemeContext} from "../constants/ThemeProvider";
 
 const CollectionScreen = (props) => {
+    const {theme} = useContext(ThemeContext);
+    const styles = createStyle(theme);
 
-    const questionList = [
-        { id: 1, title: 'Q1' },
-        { id: 2, title: 'Q2' },
-        { id: 3, title: 'Q3' },
-        { id: 4, title: 'Q4' },
-        { id: 5, title: 'Q5' },
-        { id: 6, title: 'Q6' },
-        { id: 7, title: 'Q7' },
-        { id: 8, title: 'Q8' },
-        { id: 9, title: 'Q9' },
-        { id: 10, title: 'Q10' },
-        { id: 11, title: 'Q11' },
-        { id: 12, title: 'Q12' },
-        { id: 13, title: 'Q13' },
-        { id: 14, title: 'Q14' },
-        { id: 15, title: 'Q15' },
-        { id: 16, title: 'Q16' },
-        { id: 17, title: 'Q17' },
-        { id: 18, title: 'Q18' },
-        { id: 19, title: 'Q19' },
-        { id: 20, title: 'Q20' },
-    ];
+    const [collection, setCollection] = useState({questionList:[]});
+    const [listChanged, setListChanged] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [menuQuestion, setMenuQuestion] = useState(null);
 
-    const openQuestionHandler = (questionId) => {
-        props.navigation.navigate( "Question", {
+    // componentDidMount
+    useEffect(() => {
+        const collectionId = props.navigation.getParam("collectionId");
+        Server.getCollectionById(collectionId).then(response => {
+            setCollection(response.body);
+            setListChanged(false);
+        });
+    }, [listChanged]);
+
+    const openQuestionHandler = (questionId, questionTitle) => {
+        props.navigation.navigate("Question", {
                 questionId: questionId,
-                questionList: questionList.map(question => question.id)
+                questionTitle: questionTitle,
+                questionList: collection.questionList.map(question => question.id)
             }
         );
+    };
+
+    CollectionScreen.addQuestionHandler = () => {
+        props.navigation.navigate("AddQuestion", {
+            collectionId: props.navigation.getParam("collectionId"),
+            onGoBack: () => setListChanged(true),
+        });
+    };
+
+    const deleteQuestionHandler = (question) => {
+        const deleteAction = () => {
+            Server.deleteQuestion(question.id).then(response => {
+                if (response.responseCode === 200){
+                    Alert.alert("Deleted", response.message);
+                    setListChanged(true);
+                } else {
+                    Alert.alert("Error", response.message+"\n"+response.errorList);
+                }
+            });
+        };
+
+        Alert.alert(
+            'Confirm',
+            `Are you sure that you want to delete ${question.title} question?`,
+            [ // buttons
+                {text: 'Cancel', style: 'cancel'},
+                {text: 'Yes', onPress: deleteAction},
+            ],
+            {cancelable: false},
+        );
+    };
+
+    const questionOptionsHandler = (question) => {
+        setMenuQuestion(question);
+        setMenuOpen(true);
     };
 
     return (
         <View style={styles.screen}>
             <FlatList
                 keyExtractor={(item, index) => item.id.toString()}
-                data={questionList}
+                data={collection.questionList}
                 renderItem={(questionList) => (
                     <QuestionItem
-                        index={questionList.index+1}
+                        index={questionList.index + 1}
                         title={questionList.item.title}
-                        onPress={openQuestionHandler.bind(this, questionList.item.id)}
+                        onPress={openQuestionHandler.bind(this, questionList.item.id, questionList.item.title)}
+                        onLongPress={questionOptionsHandler.bind(this, questionList.item)}
                     />
                 )}
+            />
+            {/* make menu visible when necessary and use question state to set its content */}
+            <ContextMenu
+                options={[
+                    {text:"Delete", onPress: () => deleteQuestionHandler(menuQuestion)}
+                ]}
+                visible={menuOpen}
+                closeMenu={() => setMenuOpen(!menuOpen)}
             />
         </View>
     );
@@ -59,15 +96,21 @@ const CollectionScreen = (props) => {
 
 CollectionScreen.navigationOptions = ({navigation}) => {
     return {
-        title: ("Collection id: " + navigation.getParam("collectionId"))
-        // header: <Text>Header</Text>
+        title: (navigation.getParam("collectionName")),
+        headerRight: (
+            <Icon // Add collection button
+                onPress={() => CollectionScreen.addQuestionHandler()}
+                name={"add-circle"}
+                style={{paddingHorizontal: 15}}
+            />
+        )
     };
 };
 
-const styles = StyleSheet.create({
+const createStyle = (theme) => StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: Colors.theme.background,
+        backgroundColor: theme.background,
     }
 });
 
