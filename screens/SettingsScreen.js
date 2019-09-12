@@ -1,18 +1,16 @@
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
 import { StyleSheet, View, Text, Switch, ScrollView } from 'react-native';
-import Colors from "../constants/Colors";
+import {ThemeContext, withTheme} from "../constants/ThemeProvider";
 
-export default function SettingsScreen() {
-    const [theme, setTheme] = useState(false);
+const SettingsScreen = () => {
+    const {theme, themes, setTheme} = useContext(ThemeContext);
+    const styles = createStyle(theme);
 
     const themeHandler = () => {
-        if (theme) {
-            setTheme(false);
-            // Colors.theme = Colors.dark;
+        if (theme===themes.dark) {
+            setTheme(themes.light);
         } else {
-            // TODO: set true
-            setTheme(true);
-            // Colors.theme = Colors.dark;
+            setTheme(themes.dark);
         }
     };
 
@@ -20,24 +18,24 @@ export default function SettingsScreen() {
         <View style={styles.screen}>
             <ScrollView>
                 <View style={styles.option}>
-                    <Text style={styles.text}>No Setting</Text>
+                    <Text style={styles.text}>Dark Theme (Not Works Properly)</Text>
                     <Switch
-                        value={theme}
-                        thumbColor={Colors.theme.tabIconSelected}
-                        trackColor={{true: Colors.theme.tabIconSelectedLight}}
-                        ios_backgroundColor={Colors.theme.tabIconSelectedLight}
+                        value={theme===themes.dark}
+                        thumbColor={theme.tabIconSelected}
+                        trackColor={{true: theme.tabIconSelectedLight}}
+                        ios_backgroundColor={theme.tabIconSelectedLight}
                         onChange={themeHandler}
                     />
                 </View>
             </ScrollView>
         </View>
     );
-}
+};
 
-const styles = StyleSheet.create({
+const createStyle = (theme) => StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: Colors.theme.background,
+        backgroundColor: theme.background,
     },
     option: {
         width: "100%",
@@ -46,16 +44,18 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        backgroundColor: Colors.theme.secondBackGround,
+        backgroundColor: theme.secondBackGround,
         borderBottomWidth: StyleSheet.hairlineWidth,
         borderBottomColor: "grey"
     },
     text: {
         fontSize: 20,
-        color: Colors.theme.textColor
+        color: theme.textColor
     }
 });
 
 SettingsScreen.navigationOptions = {
     title: 'Settings',
 };
+
+export default SettingsScreen;

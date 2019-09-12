@@ -1,33 +1,29 @@
 import React from 'react';
-import {StyleSheet, View, Platform, TouchableOpacity} from 'react-native';
-import Colors from "../constants/Colors";
-import {Ionicons} from "@expo/vector-icons";
+import {StyleSheet, View} from 'react-native';
+
+import Icon from "./Icon";
+import {withTheme} from "../constants/ThemeProvider";
 
 const NavButtons = (props) => {
+    const styles = createStyle(props.theme);
 
     return (
             <View style={styles.container}>
-                <TouchableOpacity activeOpacity={0.4} disabled={props.leftDisabled} onPress={props.onPressLeft}>
-                    <Ionicons
-                        name={Platform.OS === 'ios' ? 'ios-arrow-dropleft-circle' : 'md-arrow-dropleft-circle'}
-                        size={26}
-                        style={styles.icon}
-                        color={props.leftDisabled ? Colors.theme.tabIconDefault : Colors.theme.tabIconSelected}
-                    />
-                </TouchableOpacity>
-                <TouchableOpacity activeOpacity={0.4} disabled={props.rightDisabled} onPress={props.onPressRight}>
-                    <Ionicons
-                        name={Platform.OS === 'ios' ? 'ios-arrow-dropright-circle' : 'md-arrow-dropright-circle'}
-                        size={26}
-                        style={styles.icon}
-                        color={props.rightDisabled ? Colors.theme.tabIconDefault : Colors.theme.tabIconSelected}
-                    />
-                </TouchableOpacity>
+                <Icon
+                    disabled={props.leftDisabled} onPress={props.onPressLeft}
+                    name={"arrow-dropleft-circle"}
+                    style={styles.icon}
+                />
+                <Icon
+                    disabled={props.rightDisabled} onPress={props.onPressRight}
+                    name={"arrow-dropright-circle"}
+                    style={styles.icon}
+                />
             </View>
     );
 };
 
-const styles = StyleSheet.create({
+const createStyle = (theme) => StyleSheet.create({
     container: {
         flexDirection: "row",
         marginRight: 10
@@ -37,4 +33,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default NavButtons;
+export default withTheme(NavButtons);

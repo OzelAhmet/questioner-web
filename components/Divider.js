@@ -1,7 +1,9 @@
 import React from 'react';
 import {StyleSheet, View } from 'react-native';
+import {withTheme} from "../constants/ThemeProvider";
 
 const Divider = (props) => {
+    const styles = createStyle(props.theme);
 
     return (
         <View style={styles.divider}>
@@ -9,7 +11,7 @@ const Divider = (props) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createStyle = (theme) => StyleSheet.create({
     divider: {
         borderWidth:0.5,
         borderColor: "grey",
@@ -18,4 +20,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default Divider;
+export default withTheme(Divider);

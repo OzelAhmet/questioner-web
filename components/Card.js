@@ -1,8 +1,10 @@
 import React from "react";
 import {StyleSheet,  View} from "react-native";
-import Colors from "../constants/Colors";
+import {withTheme} from "../constants/ThemeProvider";
 
 const Card = (props) => {
+    const styles = createStyle(props.theme);
+
     return (
         <View {...props} style={{...styles.card, ...props.style}}>
             {props.children}
@@ -10,10 +12,10 @@ const Card = (props) => {
     );
 };
 
-const styles = StyleSheet.create({
+const createStyle = (theme) => StyleSheet.create({
     card: {
         padding: 20,
-        backgroundColor: Colors.theme.background,
+        backgroundColor: theme.background,
         elevation: 5,
         shadowColor: "black",
         shadowOffset: {width: 0, height: 2},
@@ -23,4 +25,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default Card;
+export default withTheme(Card);

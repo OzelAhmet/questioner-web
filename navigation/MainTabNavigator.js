@@ -8,17 +8,20 @@ import LinksScreen from '../screens/LinksScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import CollectionScreen from "../screens/CollectionScreen";
 import QuestionScreen from "../screens/QuestionScreen";
-import Colors from "../constants/Colors";
+import {theme} from "../constants/Colors";
+import AddCollectionScreen from "../screens/AddCollectionScreen";
+import AddQuestionScreen from "../screens/AddQuestionScreen";
+import TabBar from "../components/TabBar";
 
 const config = Platform.select({
     web: { headerMode: 'screen' },
     default: {
         defaultNavigationOptions: {
             headerStyle: {
-                backgroundColor: Colors.theme.background,
+                backgroundColor: theme.background,
             },
-            headerTintColor: Colors.theme.textColor,
-        },
+            headerTintColor: theme.textColor,
+        }
     },
 });
 
@@ -26,7 +29,9 @@ const HomeStack = createStackNavigator(
     {
         Home: HomeScreen,
         Collection: CollectionScreen,
-        Question: QuestionScreen
+        Question: QuestionScreen,
+        AddCollection: AddCollectionScreen,
+        AddQuestion: AddQuestionScreen
     },
     config
 );
@@ -46,7 +51,12 @@ HomeStack.navigationOptions = {
 };
 
 HomeStack.path = '';
-
+/**
+ *
+ * LinksStack is NOT USED.
+ * Removed at the bottom of the file.
+ *
+ */
 const LinksStack = createStackNavigator(
   {
     Links: LinksScreen,
@@ -79,11 +89,15 @@ SettingsStack.navigationOptions = {
 
 SettingsStack.path = '';
 
-const tabNavigator = createBottomTabNavigator({
-  HomeStack,
-  LinksStack,
-  SettingsStack,
-});
+const tabNavigator = createBottomTabNavigator(
+    {
+        HomeStack,
+        // LinksStack,
+        SettingsStack,
+    },
+    {
+        tabBarComponent: props => <TabBar {...props} />,
+    },);
 
 tabNavigator.path = '';
 
