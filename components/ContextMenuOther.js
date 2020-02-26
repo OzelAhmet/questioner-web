@@ -1,16 +1,40 @@
-import React from "react";
-import {StyleSheet, Text,  View, ScrollView, Modal, TouchableOpacity, TouchableWithoutFeedback} from "react-native";
-import {withTheme} from "../constants/ThemeProvider";
+import React, {useState} from "react";
+import {StyleSheet, Text,  View, ScrollView, Modal, TouchableOpacity, TouchableWithoutFeedback, AppRegistry} from "react-native";
+import Colors from "../constants/Colors";
 
-const ContextMenu = (props) => {
-    const styles = createStyle(props.theme);
+/**
+ *
+ * Similar to "Alert.alert"
+ * To use this component use "ContextMenuOther.openMenu(options: Array)"
+ *
+ * Example:
+ * ContextMenuOther.openMenu([
+ *     {
+ *          text: "Delete",
+ *          onPress: () => console.log("delete_action")
+ *     }
+ * ])
+ *
+ */
+const ContextMenuOther = (props) => {
+    const styles = createStyle(Colors.light);
+
+    const [open, setOpen] = useState(true);
+    const [actions, setActions] = useState(props.actions);
+    ContextMenuOther.setOpen = setOpen;
+    ContextMenuOther.setActions = setActions;
+
+    const closeMenu = () => {
+        setOpen(false);
+
+    };
 
     const onPressOption = (action) => {
         action();
-        props.closeMenu();
+        setOpen(false);
     };
 
-    let options = props.options.map((option, index) => {
+    let options = actions.map((option, index) => {
         return (
             <TouchableOpacity key={index} onPress={onPressOption.bind(this, option.onPress)}>
                 <View style={styles.option}>
@@ -25,10 +49,10 @@ const ContextMenu = (props) => {
             <Modal
                 animationType="fade"
                 transparent={true}
-                visible={props.visible}
-                onRequestClose={() => props.closeMenu()}
+                visible={open}
+                onRequestClose={closeMenu}
             >
-                <TouchableWithoutFeedback onPress={() => props.closeMenu()}>
+                <TouchableWithoutFeedback onPress={closeMenu}>
                     <View style={styles.outerView}>
 
                         <TouchableWithoutFeedback>
@@ -51,7 +75,8 @@ const createStyle = (theme) => StyleSheet.create({
     modal: {
         flex: 1,
         alignItems: "center",
-        justifyContent: "center"
+        justifyContent: "center",
+        height: 0
     },
     outerView: {
         backgroundColor: "rgba(0,0,0,0.5)", // 50% opacity
@@ -87,4 +112,20 @@ const createStyle = (theme) => StyleSheet.create({
     }
 });
 
-export default withTheme(ContextMenu);
+// open menu by calling this function
+ContextMenuOther.openMenu = (actions) => {
+    if ( AppRegistry.getAppKeys().includes("ContextMenuOther") === false ){
+        AppRegistry.registerComponent("ContextMenuOther", () => ContextMenuOther);
+        AppRegistry.runApplication("ContextMenuOther", {
+            // Don't know how to choose this number
+            rootTag: 15,
+            initialProps: {actions: actions}
+        });
+    } else {
+        ContextMenuOther.setOpen(true);
+        ContextMenuOther.setActions(actions);
+    }
+};
+
+
+export default ContextMenuOther;
